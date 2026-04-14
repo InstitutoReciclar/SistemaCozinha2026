@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label/index";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Calendar, Coffee, UtensilsCrossed, Cookie, ChefHat, Users, UserCheck, Clock, Save, Trash2, FileText, AlertTriangle, Calculator, ArrowRight } from "lucide-react";
+import { ArrowLeft, Calendar, Coffee, UtensilsCrossed, Cookie, ChefHat, Users, UserCheck, Clock, Save, FileText, Calculator, ArrowRight } from "lucide-react";
 
 export default function CadastroRefeicoes() {
   const [formData, setFormData] = useState({
@@ -55,56 +54,58 @@ export default function CadastroRefeicoes() {
       .catch((error) => console.error("Erro ao ler dados do Firebase:", error));
   }, []);
 
-const handleChange = (e) => {
-  const { id, value } = e.target;
+  const handleChange = (e) => {
+    const { id, value } = e.target;
 
-  setFormData((prev) => {
-    const novoEstado = { ...prev };
+    setFormData((prev) => {
+      const novoEstado = { ...prev };
 
-    // Campos que devem ser tratados como NUMÉRICOS
-    const camposNumericos = [
-      "cafeTotalQtd", "cafeFuncionariosQtd", "cafeJovensQtd",
-      "almocoTotalQtd", "almocoFuncionariosQtd", "almocoJovensQtd", "almocoJovensTardeQtd",
-      "lancheTotalQtd", "lancheFuncionariosQtd", "lancheJovensQtd", "lancheJovensManhaQtd",
-      "outrasTotalQtd", "outrasFuncionariosQtd", "outrasJovensQtd", "outrasJovensTardeQtd",
-      "desperdicioQtd"
-    ];
+      const camposNumericos = [
+        "cafeTotalQtd", "cafeFuncionariosQtd", "cafeJovensQtd",
+        "almocoTotalQtd", "almocoFuncionariosQtd", "almocoJovensQtd", "almocoJovensTardeQtd",
+        "lancheTotalQtd", "lancheFuncionariosQtd", "lancheJovensQtd", "lancheJovensManhaQtd",
+        "outrasTotalQtd", "outrasFuncionariosQtd", "outrasJovensQtd", "outrasJovensTardeQtd",
+        "desperdicioQtd"
+      ];
 
-    if (camposNumericos.includes(id)) {
-      novoEstado[id] = Number.parseInt(value) || 0;
-    } else {
-      // Campos de texto (descrições, observações etc.)
-      novoEstado[id] = value;
-    }
+      if (camposNumericos.includes(id)) {
+        novoEstado[id] = Number.parseInt(value) || 0;
+      } else {
+        novoEstado[id] = value;
+      }
 
-    // Regras de cálculo automáticas
-    if (id === "cafeTotalQtd" || id === "cafeFuncionariosQtd") {
-      novoEstado.cafeJovensQtd = Math.max(0, novoEstado.cafeTotalQtd - novoEstado.cafeFuncionariosQtd);
-    }
+      // Cálculo Café
+      if (id === "cafeTotalQtd" || id === "cafeFuncionariosQtd") {
+        novoEstado.cafeJovensQtd = Math.max(0, novoEstado.cafeTotalQtd - novoEstado.cafeFuncionariosQtd);
+      }
 
-    if (["almocoTotalQtd", "almocoFuncionariosQtd", "almocoJovensQtd"].includes(id)) {
-      novoEstado.almocoJovensTardeQtd = Math.max(
-        0,
-        novoEstado.almocoTotalQtd - novoEstado.almocoFuncionariosQtd - novoEstado.almocoJovensQtd
-      );
-      novoEstado.lancheTotalQtd = Math.max(0, novoEstado.almocoTotalQtd - novoEstado.almocoJovensQtd + 10);
-      novoEstado.lancheJovensQtd = Math.max(0, novoEstado.lancheTotalQtd - novoEstado.lancheFuncionariosQtd);
-    }
+      // Cálculo Almoço
+      if (["almocoTotalQtd", "almocoFuncionariosQtd", "almocoJovensQtd"].includes(id)) {
+        novoEstado.almocoJovensTardeQtd = Math.max(
+          0,
+          novoEstado.almocoTotalQtd - novoEstado.almocoFuncionariosQtd - novoEstado.almocoJovensQtd
+        );
+      }
 
-    if (["lancheFuncionariosQtd"].includes(id)) {
-      novoEstado.lancheJovensQtd = Math.max(0, novoEstado.lancheTotalQtd - novoEstado.lancheFuncionariosQtd);
-    }
+      // CÁLCULO LANCHE: Total - Funcionário = Jovens Tarde
+      if (id === "lancheTotalQtd" || id === "lancheFuncionariosQtd") {
+        novoEstado.lancheJovensQtd = Math.max(
+          0,
+          novoEstado.lancheTotalQtd - novoEstado.lancheFuncionariosQtd
+        );
+      }
 
-    if (["outrasTotalQtd", "outrasFuncionariosQtd", "outrasJovensQtd"].includes(id)) {
-      novoEstado.outrasJovensTardeQtd = Math.max(
-        0,
-        novoEstado.outrasTotalQtd - novoEstado.outrasFuncionariosQtd - novoEstado.outrasJovensQtd
-      );
-    }
+      // Cálculo Outras
+      if (["outrasTotalQtd", "outrasFuncionariosQtd", "outrasJovensQtd"].includes(id)) {
+        novoEstado.outrasJovensTardeQtd = Math.max(
+          0,
+          novoEstado.outrasTotalQtd - novoEstado.outrasFuncionariosQtd - novoEstado.outrasJovensQtd
+        );
+      }
 
-    return novoEstado;
-  });
-};
+      return novoEstado;
+    });
+  };
 
   const handleDateChange = (e) => setFormData((prev) => ({ ...prev, dataRefeicao: e.target.value }));
   const handleBack = () => navigate("/refeicoes");
@@ -150,7 +151,7 @@ const handleChange = (e) => {
       })
       .catch((error) => {
         console.error("Erro ao salvar refeição:", error);
-        toast.error("Erro ao salvar refeição. Tente novamente.", { position: "top-right", autoClose: 3000, theme: "colored" });
+        toast.error("Erro ao salvar refeição. Tente novamente.");
       });
   };
 
@@ -179,34 +180,20 @@ const handleChange = (e) => {
         </div>
 
         {/* Data */}
-<Card className="w-full max-w-7xl mx-auto mb-8 shadow-lg rounded-xl overflow-hidden">
-  <CardHeader>
-    <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-      <Calendar className="w-5 h-5 text-indigo-600" />
-      Data da Refeição
-    </CardTitle>
-  </CardHeader>
-
-  <CardContent className="flex flex-col gap-4">
-    <Input
-      type="date"
-      id="dataRefeicao"
-      value={formData.dataRefeicao}
-      onChange={handleDateChange}
-      className="h-12"
-    />
-
-    <Button
-      onClick={handleView}
-      variant="outline"
-      className="flex items-center justify-center gap-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50"
-    >
-      <ArrowRight className="w-4 h-4" />
-      Visualizar Refeições Cadastradas
-    </Button>
-  </CardContent>
-</Card>
-
+        <Card className="w-full max-w-7xl mx-auto mb-8 shadow-lg rounded-xl overflow-hidden">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <Calendar className="w-5 h-5 text-indigo-600" />
+              Data da Refeição
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <Input type="date" id="dataRefeicao" value={formData.dataRefeicao} onChange={handleDateChange} className="h-12" />
+            <Button onClick={handleView} variant="outline" className="flex items-center justify-center gap-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50">
+              <ArrowRight className="w-4 h-4" />Visualizar Refeições Cadastradas
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Resumo */}
         {getTotalServings() > 0 && (
@@ -245,13 +232,11 @@ const handleChange = (e) => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Descrição */}
                 <div>
                   <Label className="flex items-center gap-2 mb-2"><FileText className="w-4 h-4" />Descrição do Cardápio</Label>
                   <Textarea id={`${id}Descricao`} value={formData[`${id}Descricao`]} onChange={handleChange} placeholder="Descreva os pratos servidos..." className="min-h-[100px] resize-y" />
                 </div>
 
-                {/* Quantidades */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <Label className="flex items-center gap-2 mb-2"><Users className="w-4 h-4" />Total</Label>
@@ -262,19 +247,30 @@ const handleChange = (e) => {
                     <Input type="number" id={`${id}FuncionariosQtd`} value={formData[`${id}FuncionariosQtd`]} onChange={handleChange} min={0} className="h-12" />
                   </div>
 
-                  {/* Jovens Manhã (editável para almoço) */}
-                  {["cafe", "almoco", "lanche", "outras"].includes(id) && (
-                    <div>
-                      <Label className="flex items-center gap-2 mb-2"><Clock className="w-4 h-4" />Jovens Manhã</Label>
-                      <Input type="number" id={`${id}JovensQtd`} value={formData[`${id}JovensQtd`]} onChange={handleChange} min={0} className={`h-12 ${id === "almoco" ? "" : "bg-gray-100 cursor-not-allowed"}`} disabled={id !== "almoco"} />
-                    </div>
-                  )}
+                  {/* Jovens Manhã */}
+                  <div>
+                    <Label className="flex items-center gap-2 mb-2"><Clock className="w-4 h-4" />Jovens Manhã</Label>
+                    <Input 
+                      type="number" 
+                      id={id === "lanche" ? "lancheJovensManhaQtd" : `${id}JovensQtd`} 
+                      value={id === "lanche" ? formData.lancheJovensManhaQtd : formData[`${id}JovensQtd`]} 
+                      onChange={handleChange} 
+                      min={0} 
+                      className={`h-12 ${(id === "cafe" || id === "almoco" || id === "outras") ? "" : "bg-gray-100 cursor-not-allowed"}`} 
+                      disabled={id === "lanche"} 
+                    />
+                  </div>
 
-                  {/* Jovens Tarde */}
+                  {/* Jovens Tarde (Calculado) */}
                   {["almoco", "lanche", "outras"].includes(id) && (
                     <div>
                       <Label className="flex items-center gap-2 mb-2"><Calculator className="w-4 h-4" />Jovens Tarde (calc.)</Label>
-                      <Input type="number" value={formData[`${id}JovensTardeQtd`]} disabled className="h-12 bg-gray-100 cursor-not-allowed" />
+                      <Input
+                        type="number"
+                        value={id === "lanche" ? formData.lancheJovensQtd : formData[`${id}JovensTardeQtd`]}
+                        disabled
+                        className="h-12 bg-gray-100 cursor-not-allowed"
+                      />
                     </div>
                   )}
                 </div>
