@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getDatabase, ref, get, update } from "firebase/database"
+import { getDatabase, ref, get, update, remove } from "firebase/database"
 import { useNavigate } from "react-router-dom"
 import * as XLSX from "xlsx"
 import { Input } from "@/components/ui/input/index"
@@ -48,7 +48,7 @@ export default function ExibirRefeicoes() {
   const [editando, setEditando] = useState(null)
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [viewMode, setViewMode] = useState("cards")
-  const itensPorPagina = 5
+  const itensPorPagina = 10
   const navigate = useNavigate()
 
   const handleView = () => navigate("/cadastro-refeicoes")
@@ -82,7 +82,10 @@ export default function ExibirRefeicoes() {
             ...item,
           })
         })
-        setRefeicoes(data)
+        // ORDENA DO MAIS NOVO PARA O MAIS ANTIGO
+data.sort((a, b) => b.dataRefeicaoObj - a.dataRefeicaoObj)
+
+setRefeicoes(data)
       }
     })
   }
@@ -112,6 +115,19 @@ export default function ExibirRefeicoes() {
   }
 
   const handleBlur = () => salvarEdicao()
+
+
+const excluirRefeicao = (id) => {
+  if (!confirm("Tem certeza que deseja excluir esta refeição?")) return
+
+  const refeicaoRef = ref(database, `refeicoesServidas/${id}`)
+
+  remove(refeicaoRef).then(() => {
+    setRefeicoes((prev) => prev.filter((item) => item.key !== id))
+  })
+}
+
+
 
   const resetTime = (date) => {
     date.setHours(0, 0, 0, 0)
@@ -182,9 +198,19 @@ export default function ExibirRefeicoes() {
       <Card className="shadow-sm hover:shadow-md transition-shadow">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" /> {formatDate(refeicao.dataRefeicao)}
-            </CardTitle>
+            <div className="flex items-center justify-between w-full">
+  <CardTitle className="flex items-center gap-2">
+    <Calendar className="w-5 h-5" /> {formatDate(refeicao.dataRefeicao)}
+  </CardTitle>
+
+  <Button
+    variant="destructive"
+    size="sm"
+    onClick={() => excluirRefeicao(refeicao.key)}
+  >
+    <Trash2 className="w-4 h-4" />
+  </Button>
+</div>
             <Badge variant="outline">
               Total:{" "}
               {(refeicao.cafeTotalQtd || 0) +
@@ -267,7 +293,7 @@ export default function ExibirRefeicoes() {
   const refeicoesPaginadas = refeicoes.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina)
 
   const headers = [
-    "Data Refeição", "Café Descrição", "Café Total", "Café Funcionários", "Café Jovens",
+    "Ações","Data Refeição", "Café Descrição", "Café Total", "Café Funcionários", "Café Jovens",
     "Almoço Descrição", "Almoço Total", "Almoço Funcionários", "Almoço Jovens", "Almoço Jovens Tarde",
     "Lanche Descrição", "Lanche Total", "Lanche Funcionários", "Lanche Jovens", "Lanche Jovens Tarde",
     "Outras Descrição", "Outras Total", "Outras Funcionários", "Outras Jovens", "Outras Jovens Tarde",
@@ -330,6 +356,15 @@ export default function ExibirRefeicoes() {
               <tbody>
                 {refeicoesPaginadas.map(r => (
                   <tr key={r.key} className="hover:bg-gray-50 border-b">
+                    <td className="px-4 py-2">
+  <Button
+    variant="destructive"
+    size="sm"
+    onClick={() => excluirRefeicao(r.key)}
+  >
+    <Trash2 className="w-4 h-4" />
+  </Button>
+</td>
                     {fields.map(f => (
                       <td key={f} className="px-4 py-2 border-r last:border-r-0 whitespace-nowrap">
                         <EditableField refeicaoId={r.key} field={f} value={f === "dataRefeicao" ? r[f] : r[f]} />
