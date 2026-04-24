@@ -139,17 +139,10 @@ export default function CadastroRefeicoes() {
       );
     }
 
-    // ====================
-    // OUTRAS
-    // ====================
-    if (["outrasTotalQtd", "outrasFuncionariosQtd", "outrasJovensQtd"].includes(id)) {
-      novoEstado.outrasJovensTardeQtd = Math.max(
-        0,
-        novoEstado.outrasTotalQtd -
-        novoEstado.outrasFuncionariosQtd -
-        novoEstado.outrasJovensQtd
-      );
-    }
+  // ====================
+// OUTRAS (AGORA MANUAL - SEM CÁLCULO)
+// ====================
+// Não faz mais nada automaticamente
 
     return novoEstado;
   });
@@ -314,11 +307,13 @@ export default function CadastroRefeicoes() {
                     <div>
                       <Label className="flex items-center gap-2 mb-2"><Calculator className="w-4 h-4" />Jovens Tarde (calc.)</Label>
                       <Input
-                        type="number"
-                        value={id === "lanche" ? formData.lancheJovensQtd : formData[`${id}JovensTardeQtd`]}
-                        disabled
-                        className="h-12 bg-gray-100 cursor-not-allowed"
-                      />
+  type="number"
+  id={`${id}JovensTardeQtd`}
+  value={id === "lanche" ? formData.lancheJovensQtd : formData[`${id}JovensTardeQtd`]}
+  onChange={handleChange}
+  min={0}
+  className="h-12"
+/>
                     </div>
                   )}
                 </div>
